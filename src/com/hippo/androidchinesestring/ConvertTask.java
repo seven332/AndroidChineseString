@@ -18,14 +18,12 @@ import java.io.*;
  */
 public class ConvertTask extends Task.Backgroundable {
 
-    private Project mProject;
     private VirtualFile mSourceFile;
     private boolean mOverride;
 
     public ConvertTask(Project project, VirtualFile file, boolean override) {
         super(project, "Convert in progress", true);
         setCancelText("Convert has been canceled");
-        mProject = project;
         mSourceFile = file;
         mOverride = override;
     }
@@ -109,12 +107,34 @@ public class ConvertTask extends Task.Backgroundable {
 
     private void convertTHK(@NotNull String body, @NotNull VirtualFile resFolder,
             @NotNull ProgressIndicator progressIndicator) {
-        // TODO First Covert to Simplified Chinese, then to Taiwan Standard
+        // First Covert to Simplified Chinese, then to Taiwan Standard
+        try {
+            progressIndicator.setText("Traditional Chinese (Hong Kong Standard) to Simplified Chinese");
+            String chineseS = convert(body, resFolder, ChineseLanguage.STRING_CHINSES_S, "hk2s.json");
+            progressIndicator.setFraction(0.5);
+
+            progressIndicator.setText("Simplified Chinese to Traditional Chinese (Taiwan Standard) with Taiwanese idiom");
+            convert(chineseS, resFolder, ChineseLanguage.STRING_CHINSES_T_TW, "s2twp.json");
+            progressIndicator.setFraction(1);
+        } catch (Exception e) {
+            showCovertException(e);
+        }
     }
 
     private void convertTTW(@NotNull String body, @NotNull VirtualFile resFolder,
             @NotNull ProgressIndicator progressIndicator) {
-        // TODO First Covert to Simplified Chinese, then to Hong Kong Standard
+        // First Covert to Simplified Chinese, then to Hong Kong Standard
+        try {
+            progressIndicator.setText("Traditional Chinese (Taiwan Standard) to Simplified Chinese with Mainland Chinese idiom");
+            String chineseS = convert(body, resFolder, ChineseLanguage.STRING_CHINSES_S, "tw2sp.json");
+            progressIndicator.setFraction(0.5);
+
+            progressIndicator.setText("Simplified Chinese to Traditional Chinese (Hong Kong Standard)");
+            convert(chineseS, resFolder, ChineseLanguage.STRING_CHINSES_T_HK, "s2hk.json");
+            progressIndicator.setFraction(1);
+        } catch (Exception e) {
+            showCovertException(e);
+        }
     }
 
     private String convert(String body, VirtualFile resFolder, String valueName, String json)
