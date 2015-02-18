@@ -6,7 +6,8 @@ This is a Android Studio/ IntelliJ IDEA plugin to convert the strings.xml betwee
 对着中文 values 文件夹下的 strings.xml 单击右键，再选择 Convert between Chinese。<br>
 中文 values 文件夹指的是 values-zh-rCN, values-zh-rHK 和 values-zh-rTW。单纯的 values-zh 是不能判断是繁还是简。<br>
 Right click the strings.xml in Chinese values folder, choose 'Convert to other languages'.<br>
-Chinese values folder is values-zh-rCN, values-zh-rHK and values-zh-rTW. It is unknown that the language is Simplified Chinese or Traditional Chinese in values-zh folder.
+Chinese values folder is values-zh-rCN, values-zh-rHK and values-zh-rTW. It is unknown that the language is Simplified Chinese or Traditional Chinese in values-zh folder.<br>
+![img](https://raw.githubusercontent.com/seven332/AndroidChineseString/master/screen_shot_1.png)
 
 # Build
 导入 IntelliJ IDEA 即可编译。<br>
