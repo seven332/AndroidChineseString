@@ -1,5 +1,6 @@
 package com.hippo.androidchinesestring;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -12,6 +13,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.nio.charset.Charset;
 
 /**
  * Created by Hippo on 2015/2/17.
@@ -20,12 +22,14 @@ public class ConvertTask extends Task.Backgroundable {
 
     private VirtualFile mSourceFile;
     private boolean mOverride;
+    private PropertiesComponent mProperties;
 
     public ConvertTask(Project project, VirtualFile file, boolean override) {
         super(project, "Convert in progress", true);
         setCancelText("Convert has been canceled");
         mSourceFile = file;
         mOverride = override;
+        mProperties = PropertiesComponent.getInstance();
     }
 
     private void showErrorDialog(final String message) {
@@ -194,10 +198,19 @@ public class ConvertTask extends Task.Backgroundable {
 
     private void writeStringToFile(String body, File file) throws IOException {
         // TODO Check override
-        BufferedWriter writer = new BufferedWriter
-                (new OutputStreamWriter(new FileOutputStream(file),"UTF-8"));
+        BufferedWriter writer;
+
+        String encoding = mProperties.getValue(StorageDataKey.KEY_OUTPUT_FILE_ENCODING,
+                StorageDataKey.VALUE_OUTPUT_FILE_ENCODING_SYSTEM_DEFAULT);
+        if (encoding.equals(StorageDataKey.VALUE_OUTPUT_FILE_ENCODING_SYSTEM_DEFAULT) ||
+                !Charset.isSupported(encoding)) {
+            writer = new BufferedWriter
+                    (new OutputStreamWriter(new FileOutputStream(file)));
+        } else {
+            writer = new BufferedWriter
+                    (new OutputStreamWriter(new FileOutputStream(file), encoding));
+        }
         writer.write(body);
-        writer.flush();
         writer.close();
     }
 
