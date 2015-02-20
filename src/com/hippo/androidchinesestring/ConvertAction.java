@@ -27,7 +27,7 @@ public class ConvertAction extends AnAction {
             return;
         }
 
-        new ConvertTask(project, file, false).queue();
+        new ConvertTask(project, file).queue();
     }
 
     @Override

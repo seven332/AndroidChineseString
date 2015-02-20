@@ -8,4 +8,6 @@ public class StorageDataKey {
     public static final String KEY_OUTPUT_FILE_ENCODING = "ACS_OutputFileEncoding";
     public static final String VALUE_OUTPUT_FILE_ENCODING_SYSTEM_DEFAULT = "<System-Default>";
     public static final String VALUE_OUTPUT_FILE_ENCODING_UTF_8 = "UTF-8";
+
+    public static final String KEY_ASK_BEFORE_OVERRIDE = "ACS_AskBeforeOverride";
 }

@@ -20,12 +20,16 @@ public class ConvertSetting implements Configurable, ActionListener {
     private static final String DISPLAY_NAME = "Android Chinese String";
 
     private PropertiesComponent mProperties;
-    
+
     private JComponent mComponent;
     private JComboBox mComboBoxOutputFileEncoding;
-    
+    private JCheckBox mCheckBoxAskOverride;
+
     private String mCurrentEncoding;
     private boolean mChangeOutputFileEncoding = false;
+
+    private boolean mCurrentAskOverride;
+    private boolean mChangeAskOverride = false;
 
     public ConvertSetting() {
         mProperties = PropertiesComponent.getInstance();
@@ -51,9 +55,10 @@ public class ConvertSetting implements Configurable, ActionListener {
             mComponent = new JPanel();
             mComponent.setLayout(new BorderLayout());
 
+            Box boxMain = Box.createVerticalBox();
+
             // Output file encoding
-            JPanel ofePanel = new JPanel();
-            ofePanel.setLayout(new BorderLayout(8, 8));
+            JPanel ofePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             JLabel ofeLabel = new JLabel("Output file encoding");
             mCurrentEncoding = mProperties.getValue(StorageDataKey.KEY_OUTPUT_FILE_ENCODING,
                     StorageDataKey.VALUE_OUTPUT_FILE_ENCODING_SYSTEM_DEFAULT);
@@ -65,11 +70,21 @@ public class ConvertSetting implements Configurable, ActionListener {
             mComboBoxOutputFileEncoding.setEnabled(true);
             mComboBoxOutputFileEncoding.setSelectedItem(mCurrentEncoding);
             mComboBoxOutputFileEncoding.addActionListener(this);
+            ofePanel.add(ofeLabel);
+            ofePanel.add(mComboBoxOutputFileEncoding);
 
-            ofePanel.add(BorderLayout.WEST, ofeLabel);
-            ofePanel.add(BorderLayout.CENTER, mComboBoxOutputFileEncoding);
+            // Ask before override
+            JPanel aboPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            mCheckBoxAskOverride = new JCheckBox("Ask before override");
+            mCurrentAskOverride = mProperties.getBoolean(StorageDataKey.KEY_ASK_BEFORE_OVERRIDE, true);
+            mCheckBoxAskOverride.setSelected(mCurrentAskOverride);
+            mCheckBoxAskOverride.addActionListener(this);
+            aboPanel.add(mCheckBoxAskOverride);
 
-            mComponent.add(BorderLayout.NORTH, ofePanel);
+            boxMain.add(ofePanel);
+            boxMain.add(aboPanel);
+
+            mComponent.add(BorderLayout.NORTH, boxMain);
         }
 
         return mComponent;
@@ -77,13 +92,19 @@ public class ConvertSetting implements Configurable, ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String newEncoding = (String) mComboBoxOutputFileEncoding.getSelectedItem();
-        mChangeOutputFileEncoding = !mCurrentEncoding.equals(newEncoding);
+        if (e.getSource() == mComboBoxOutputFileEncoding) {
+            String newEncoding = (String) mComboBoxOutputFileEncoding.getSelectedItem();
+            mChangeOutputFileEncoding = !mCurrentEncoding.equals(newEncoding);
+
+        } else if (e.getSource() == mCheckBoxAskOverride){
+            boolean newAskOverride = mCheckBoxAskOverride.isSelected();
+            mChangeAskOverride = (mCurrentAskOverride != newAskOverride);
+        }
     }
 
     @Override
     public boolean isModified() {
-        return mChangeOutputFileEncoding;
+        return mChangeOutputFileEncoding || mChangeAskOverride;
     }
 
     @Override
@@ -91,12 +112,19 @@ public class ConvertSetting implements Configurable, ActionListener {
         mProperties.setValue(StorageDataKey.KEY_OUTPUT_FILE_ENCODING,
                 mComboBoxOutputFileEncoding.getSelectedItem().toString());
         mChangeOutputFileEncoding = false;
+
+        mProperties.setValue(StorageDataKey.KEY_ASK_BEFORE_OVERRIDE,
+                Boolean.toString(mCheckBoxAskOverride.isSelected()));
+        mChangeAskOverride = false;
     }
 
     @Override
     public void reset() {
         mComboBoxOutputFileEncoding.setSelectedItem(mCurrentEncoding);
         mChangeOutputFileEncoding = false;
+
+        mCheckBoxAskOverride.setSelected(mCurrentAskOverride);
+        mChangeAskOverride = false;
     }
 
     @Override

@@ -23,12 +23,14 @@ public class ConvertTask extends Task.Backgroundable {
     private VirtualFile mSourceFile;
     private boolean mOverride;
     private PropertiesComponent mProperties;
+    private transient boolean mCanOverride = false;
 
-    public ConvertTask(Project project, VirtualFile file, boolean override) {
+    private final Object mLock = new Object();
+
+    public ConvertTask(Project project, VirtualFile file) {
         super(project, "Convert in progress", true);
         setCancelText("Convert has been canceled");
         mSourceFile = file;
-        mOverride = override;
         mProperties = PropertiesComponent.getInstance();
     }
 
@@ -196,8 +198,43 @@ public class ConvertTask extends Task.Backgroundable {
         }
     }
 
+    private void showOverrideDialog(final String filePath) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new YesNoDialog(myProject, false, "Override " + filePath + " ?", "Warning",
+                        new YesNoDialog.OnButtonClickListener() {
+                            @Override
+                            public void onButtonClick(int which) {
+                                mCanOverride = (which == YesNoDialog.BUTTON_YES);
+                                synchronized (mLock) {
+                                    mLock.notify();
+                                }
+                            }
+                        }).show();
+            }
+        });
+    }
+
     private void writeStringToFile(String body, File file) throws IOException {
-        // TODO Check override
+
+        if (mProperties.getBoolean(StorageDataKey.KEY_ASK_BEFORE_OVERRIDE, true) &&
+                file.exists()) {
+            showOverrideDialog(file.getPath());
+
+            synchronized (mLock) {
+                try {
+                    mLock.wait();
+                } catch (InterruptedException e) {
+                    // Empty
+                }
+            }
+
+            if (!mCanOverride) {
+                return;
+            }
+        }
+
         BufferedWriter writer;
 
         String encoding = mProperties.getValue(StorageDataKey.KEY_OUTPUT_FILE_ENCODING,

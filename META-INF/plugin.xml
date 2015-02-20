@@ -27,7 +27,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
       <applicationConfigurable
-              instance="com.hippo.androidchinesestring.SettingConfigurable"/>
+              instance="com.hippo.androidchinesestring.ConvertSetting"/>
   </extensions>
 
   <application-components>
